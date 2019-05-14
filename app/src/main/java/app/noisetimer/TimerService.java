@@ -26,6 +26,7 @@ public class TimerService extends Service {
     private long fulltime = 0;
     private double soundlvl = 0;
     private double penalty = 0;
+    private double cutoff = 0;
     private double penaltyThreshold = 0;
     private double penaltyMultiplier = 0;
     private boolean paused = true;
@@ -45,6 +46,7 @@ public class TimerService extends Service {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         fulltime = sp.getLong("default", 300000);
         remaining = sp.getLong("current", fulltime);
+        cutoff = sp.getFloat("cutoff", 0);
         penaltyThreshold = sp.getFloat("threshold", 8);
         penaltyMultiplier = sp.getFloat("multiplier", 0.3f);
         paused = true;
@@ -156,6 +158,7 @@ public class TimerService extends Service {
         intent.putExtra(Constants.LB_LEVEL, soundlvl);
         //intent.putExtra(Constants.LB_PENALTY, penalty);
         intent.putExtra(Constants.LB_PAUSED, paused);
+        intent.putExtra(Constants.LB_CUTOFF, cutoff);
         intent.putExtra(Constants.LB_THRESHOLD, penaltyThreshold);
         intent.putExtra(Constants.LB_MULTIPLIER, penaltyMultiplier);
         broadcaster.sendBroadcast(intent);
@@ -230,6 +233,7 @@ public class TimerService extends Service {
             persistTimer();
         }
         else if(action.equals(Constants.PARAM_ACTION)) {
+            cutoff = intent.getDoubleExtra(Constants.LB_CUTOFF, 0);
             penaltyThreshold = intent.getDoubleExtra(Constants.LB_THRESHOLD, 0);
             penaltyMultiplier = intent.getDoubleExtra(Constants.LB_MULTIPLIER, 0);
             persistParams();
@@ -258,6 +262,7 @@ public class TimerService extends Service {
     private void persistParams() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor spe = sp.edit();
+        spe.putFloat("cutoff", (float) cutoff);
         spe.putFloat("threshold", (float) penaltyThreshold);
         spe.putFloat("multiplier", (float) penaltyMultiplier);
         spe.apply();

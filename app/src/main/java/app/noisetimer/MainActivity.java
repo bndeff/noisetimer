@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private String timeString;
     private double soundlvl;
     private boolean permission;
+    private double cutoff;
     private double penaltyThreshold;
     private double penaltyMultiplier;
 
@@ -114,9 +115,10 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
     }
 
-    private void sendParamIntent(double threshold, double multiplier) {
+    private void sendParamIntent(double cutoff, double threshold, double multiplier) {
         Intent intent = new Intent(this, TimerService.class);
         intent.setAction(Constants.PARAM_ACTION);
+        intent.putExtra(Constants.LB_CUTOFF, cutoff);
         intent.putExtra(Constants.LB_THRESHOLD, threshold);
         intent.putExtra(Constants.LB_MULTIPLIER, multiplier);
         startService(intent);
@@ -126,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
         timeString = intent.getStringExtra(Constants.LB_TIME);
         setPaused(intent.getBooleanExtra(Constants.LB_PAUSED, true));
         soundlvl = intent.getDoubleExtra(Constants.LB_LEVEL, 0);
+        cutoff = intent.getDoubleExtra(Constants.LB_CUTOFF, 0);
         penaltyThreshold = intent.getDoubleExtra(Constants.LB_THRESHOLD, 0);
         penaltyMultiplier = intent.getDoubleExtra(Constants.LB_MULTIPLIER, 0);
         updateUI();
@@ -134,10 +137,15 @@ public class MainActivity extends AppCompatActivity {
     private void updateUI() {
         TextView msg = findViewById(R.id.message);
         msg.setText(String.valueOf(timeString));
-        int progress = (int) (Math.log(1+soundlvl)/Math.log(2)/15*1000);
-        int threshold1 = (int) Math.max(Math.min(penaltyThreshold/15*1000, 998), 1);
-        int threshold2 = (int) Math.max(Math.min(((penaltyThreshold+1/penaltyMultiplier)/15*1000),
-                999), threshold1);
+        double prg = (Math.log(1+soundlvl)/Math.log(2)/15*1000);
+        double th1 = Math.max(Math.min(penaltyThreshold/15*1000, 998), 1);
+        double th2 = Math.max(Math.min(((penaltyThreshold+1/penaltyMultiplier)/15*1000), 999), th1);
+        int progress = (int) ((prg-cutoff*1000)/(1-cutoff));
+        int threshold1 = (int) ((th1-cutoff*1000)/(1-cutoff));
+        int threshold2 = (int) ((th2-cutoff*1000)/(1-cutoff));
+        if(progress < 0) progress = 0;
+        if(threshold1 < 0) threshold1 = 0;
+        if(threshold2 < 0) threshold2 = 0;
         setProgress(progress, threshold1, threshold2);
     }
 
@@ -199,20 +207,23 @@ public class MainActivity extends AppCompatActivity {
                     long rem = Integer.valueOf(m.group(1)) * 60 + Integer.valueOf(m.group(2));
                     sendUpdateIntent(rem * 1000);
                 } else {
-                    p = Pattern.compile("(\\d+),(\\d+)");
+                    p = Pattern.compile("(\\d+),(\\d+),(\\d+)");
                     m = p.matcher(res);
                     if(m.matches()) {
                         // hidden interface to set penalty parameters
                         // use 0 <= threshold1 < threshold2 <= 101
                         // no penalty for sound level < threshold1
                         // double speed at sound level < threshold2
-                        int threshold1 = Integer.valueOf(m.group(1));
-                        int threshold2 = Integer.valueOf(m.group(2));
-                        if((0 <= threshold1) && (threshold1 < threshold2) && (threshold2 <= 101)) {
+                        int cutoffperc = Integer.valueOf(m.group(1));
+                        int threshold1 = Integer.valueOf(m.group(2));
+                        int threshold2 = Integer.valueOf(m.group(3));
+                        if((0 <= threshold1) && (threshold1 < threshold2) && (threshold2 <= 101) &&
+                           (0 <= cutoffperc) && (cutoffperc < 100)) {
+                            cutoff = cutoffperc / 100.0;
                             penaltyThreshold = threshold1 * 15.0 / 100.0;
                             penaltyMultiplier = 100.0 / 15.0 / (threshold2-threshold1);
                             if(threshold2 == 101) penaltyMultiplier = 0;
-                            sendParamIntent(penaltyThreshold, penaltyMultiplier);
+                            sendParamIntent(cutoff, penaltyThreshold, penaltyMultiplier);
                         } else {
                             Dialog d = (Dialog) dialogInterface;
                             Toast.makeText(d.getContext(), "Invalid parameters", Toast.LENGTH_SHORT).show();

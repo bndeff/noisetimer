@@ -19,6 +19,7 @@ class Constants {
     static String LB_LEVEL = "app.noisetimer.level";
     static String LB_PENALTY = "app.noisetimer.penalty";
     static String LB_PAUSED = "app.noisetimer.paused";
+    static String LB_CUTOFF = "app.noisetimer.cutoff";
     static String LB_THRESHOLD = "app.noisetimer.threshold";
     static String LB_MULTIPLIER = "app.noisetimer.multiplier";
     static int NOTIF_SERVICE = 101;
