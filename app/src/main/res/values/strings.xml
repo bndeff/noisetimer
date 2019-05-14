@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Noise Timer</string>
+    <string name="channel_service">Countdown</string>
+    <string name="channel_alarm">Alarm</string>
+    <string name="reset">reset</string>
+    <string name="pause">start/pause</string>
+    <string name="edit">edit</string>
+    <string name="incr">increase</string>
+</resources>

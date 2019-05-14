@@ -1,0 +1,33 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="android:textColor">@color/colorText</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:alertDialogStyle">@style/AlertDialogStyle</item>
+    </style>
+
+    <style name="AlertDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColor">@color/colorDialogText</item>
+    </style>
+
+    <style name="ProgressLow" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorAccent">@color/colorLowLevel</item>
+    </style>
+
+    <style name="ProgressMed" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorAccent">@color/colorMedLevel</item>
+    </style>
+
+    <style name="ProgressHigh" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorAccent">@color/colorHighLevel</item>
+    </style>
+
+</resources>
