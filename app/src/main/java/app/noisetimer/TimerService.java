@@ -46,9 +46,10 @@ public class TimerService extends Service {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         fulltime = sp.getLong("default", 300000);
         remaining = sp.getLong("current", fulltime);
-        cutoff = sp.getFloat("cutoff", 0);
-        penaltyThreshold = sp.getFloat("threshold", 8);
-        penaltyMultiplier = sp.getFloat("multiplier", 0.3f);
+        // the settings below correspond to 40,60,80 in the edit dialog
+        cutoff = sp.getFloat("cutoff", 0.4f);
+        penaltyThreshold = sp.getFloat("threshold", 9);
+        penaltyMultiplier = sp.getFloat("multiplier", 0.33333333f);
         paused = true;
         Intent intent = new Intent(getApplicationContext(), TimerService.class);
         intent.setAction(Constants.OPEN_ACTION);
