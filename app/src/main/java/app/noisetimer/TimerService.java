@@ -12,11 +12,12 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -57,7 +58,7 @@ public class TimerService extends Service {
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
         nm = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            nm.createNotificationChannel(new NotificationChannel(
+            Objects.requireNonNull(nm).createNotificationChannel(new NotificationChannel(
                     Constants.CHANNEL_SERVICE,
                     getResources().getString(R.string.channel_service),
                     NotificationManager.IMPORTANCE_LOW));
@@ -200,7 +201,7 @@ public class TimerService extends Service {
         }, 500);
     }
 
-    void startMainActivity() {
+    private void startMainActivity() {
         Intent mainIntent = new Intent(this, MainActivity.class);
         mainIntent.setAction(Intent.ACTION_MAIN);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -211,43 +212,45 @@ public class TimerService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
         if(action == null) return START_STICKY;
-        if(action.equals(Constants.START_ACTION)) {
-            startService();
-        }
-        else if(action.equals(Constants.STOP_ACTION)) {
-            stopService();
-        }
-        else if(action.equals(Constants.PAUSE_ACTION)) {
-            paused = true;
-        }
-        else if(action.equals(Constants.UNPAUSE_ACTION)) {
-            paused = false;
-        }
-        else if(action.equals(Constants.INCREASE_ACTION)) {
-            remaining += 60000;
-            persistTimer();
-        }
-        else if(action.equals(Constants.UPDATE_ACTION)) {
-            fulltime = intent.getLongExtra(Constants.LB_RAWTIME, 0);
-            remaining = fulltime;
-            paused = true;
-            persistTimer();
-        }
-        else if(action.equals(Constants.PARAM_ACTION)) {
-            cutoff = intent.getDoubleExtra(Constants.LB_CUTOFF, 0);
-            penaltyThreshold = intent.getDoubleExtra(Constants.LB_THRESHOLD, 0);
-            penaltyMultiplier = intent.getDoubleExtra(Constants.LB_MULTIPLIER, 0);
-            persistParams();
-        }
-        else if(action.equals(Constants.RESET_ACTION)) {
-            nm.cancel(Constants.NOTIF_ALARM);
-            remaining = fulltime;
-            paused = true;
-            persistTimer();
-        }
-        else if(action.equals(Constants.OPEN_ACTION)) {
-            nm.cancel(Constants.NOTIF_ALARM);
-            startMainActivity();
+        switch (action) {
+            case Constants.START_ACTION:
+                startService();
+                break;
+            case Constants.STOP_ACTION:
+                stopService();
+                break;
+            case Constants.PAUSE_ACTION:
+                paused = true;
+                break;
+            case Constants.UNPAUSE_ACTION:
+                paused = false;
+                break;
+            case Constants.INCREASE_ACTION:
+                remaining += 60000;
+                persistTimer();
+                break;
+            case Constants.UPDATE_ACTION:
+                fulltime = intent.getLongExtra(Constants.LB_RAWTIME, 0);
+                remaining = fulltime;
+                paused = true;
+                persistTimer();
+                break;
+            case Constants.PARAM_ACTION:
+                cutoff = intent.getDoubleExtra(Constants.LB_CUTOFF, 0);
+                penaltyThreshold = intent.getDoubleExtra(Constants.LB_THRESHOLD, 0);
+                penaltyMultiplier = intent.getDoubleExtra(Constants.LB_MULTIPLIER, 0);
+                persistParams();
+                break;
+            case Constants.RESET_ACTION:
+                nm.cancel(Constants.NOTIF_ALARM);
+                remaining = fulltime;
+                paused = true;
+                persistTimer();
+                break;
+            case Constants.OPEN_ACTION:
+                nm.cancel(Constants.NOTIF_ALARM);
+                startMainActivity();
+                break;
         }
         return START_STICKY;
     }

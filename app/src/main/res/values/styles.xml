@@ -18,16 +18,4 @@
         <item name="android:textColor">@color/colorDialogText</item>
     </style>
 
-    <style name="ProgressLow" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorAccent">@color/colorLowLevel</item>
-    </style>
-
-    <style name="ProgressMed" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorAccent">@color/colorMedLevel</item>
-    </style>
-
-    <style name="ProgressHigh" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorAccent">@color/colorHighLevel</item>
-    </style>
-
 </resources>

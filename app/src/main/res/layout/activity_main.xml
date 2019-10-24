@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/message"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
@@ -20,27 +22,17 @@
         app:autoSizeMaxTextSize="288sp"
         app:autoSizeMinTextSize="72sp"
         app:autoSizeStepGranularity="2sp"
-        app:autoSizeTextType="uniform"
-        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:autoSizeTextType="uniform" />
 
     <LinearLayout
-        android:id="@+id/buttonContainer"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="64dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/levelContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.333"
-        app:layout_constraintStart_toStartOf="parent">
+        android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/reset"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
@@ -50,8 +42,6 @@
             android:onClick="reset"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/ic_action_reset" />
 
         <ImageButton
@@ -65,13 +55,9 @@
             android:onClick="pause"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/reset"
-            app:layout_constraintTop_toBottomOf="@+id/message"
             app:srcCompat="@drawable/ic_action_play" />
 
         <ImageButton
-            android:id="@+id/increase"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
@@ -81,13 +67,9 @@
             android:onClick="increase"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/pause"
-            app:layout_constraintTop_toBottomOf="@+id/message"
             app:srcCompat="@drawable/ic_action_incr" />
 
         <ImageButton
-            android:id="@+id/edit"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
@@ -97,56 +79,46 @@
             android:onClick="edit"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/increase"
-            app:layout_constraintTop_toBottomOf="@+id/message"
             app:srcCompat="@drawable/ic_action_edit" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/levelContainer"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="2dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="2dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:orientation="horizontal">
 
-        <ProgressBar
+        <View
             android:id="@+id/levelLow"
-            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:max="1000"
-            android:progress="0"
-            android:theme="@style/ProgressLow" />
+            android:background="@color/colorLowLevel" />
 
-        <ProgressBar
+        <View
             android:id="@+id/levelMed"
-            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:max="1000"
-            android:progress="0"
-            android:theme="@style/ProgressMed" />
+            android:background="@color/colorMedLevel" />
 
-        <ProgressBar
+        <View
             android:id="@+id/levelHigh"
-            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:max="1000"
-            android:progress="0"
-            android:theme="@style/ProgressHigh" />
+            android:background="@color/colorHighLevel" />
+
+        <View
+            android:id="@+id/levelEmpty"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/colorBackground" />
 
     </LinearLayout>
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>
