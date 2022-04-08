@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -54,13 +53,18 @@ public class MainActivity extends AppCompatActivity {
                 this.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 0);
             }
         }
+        findViewById(R.id.reset).setOnClickListener(this::reset);
+        findViewById(R.id.pause).setOnClickListener(this::pause);
+        findViewById(R.id.increase).setOnClickListener(this::increase);
+        findViewById(R.id.edit).setOnClickListener(this::edit);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode != 0) return;
-        if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if(!permission) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != 0) return;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (!permission) {
                 permission = true;
                 sendTimerIntent(Constants.START_ACTION);
             }
@@ -68,18 +72,8 @@ public class MainActivity extends AppCompatActivity {
             permission = false;
             AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle);
             builder.setMessage("Required permission missing");
-            builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    finish();
-                }
-            });
-            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialogInterface) {
-                    finish();
-                }
-            });
+            builder.setPositiveButton("Close", (dialogInterface, i) -> finish());
+            builder.setOnCancelListener(dialogInterface -> finish());
             builder.show();
         }
     }
@@ -202,52 +196,44 @@ public class MainActivity extends AppCompatActivity {
         input.setText(timeString);
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle);
         builder.setView(input);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
-                String res = input.getText().toString();
-                Pattern p = Pattern.compile("(\\d+):(\\d+)");
-                Matcher m = p.matcher(res);
+        builder.setPositiveButton("OK", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+            String res = input.getText().toString();
+            Pattern p = Pattern.compile("(\\d+):(\\d+)");
+            Matcher m = p.matcher(res);
+            if(m.matches()) {
+                long rem = Integer.parseInt(Objects.requireNonNull(m.group(1))) * 60L +
+                           Integer.parseInt(Objects.requireNonNull(m.group(2)));
+                sendUpdateIntent(rem * 1000);
+            } else {
+                p = Pattern.compile("(\\d+),(\\d+),(\\d+)");
+                m = p.matcher(res);
                 if(m.matches()) {
-                    long rem = Integer.valueOf(Objects.requireNonNull(m.group(1))) * 60 +
-                               Integer.valueOf(Objects.requireNonNull(m.group(2)));
-                    sendUpdateIntent(rem * 1000);
-                } else {
-                    p = Pattern.compile("(\\d+),(\\d+),(\\d+)");
-                    m = p.matcher(res);
-                    if(m.matches()) {
-                        // hidden interface to set penalty parameters
-                        // use 0 <= threshold1 < threshold2 <= 101
-                        // no penalty for sound level < threshold1
-                        // double speed at sound level < threshold2
-                        int cutoffperc = Integer.valueOf(Objects.requireNonNull(m.group(1)));
-                        int threshold1 = Integer.valueOf(Objects.requireNonNull(m.group(2)));
-                        int threshold2 = Integer.valueOf(Objects.requireNonNull(m.group(3)));
-                        if((0 <= threshold1) && (threshold1 < threshold2) && (threshold2 <= 101) &&
-                           (0 <= cutoffperc) && (cutoffperc < 100)) {
-                            cutoff = cutoffperc / 100.0;
-                            penaltyThreshold = threshold1 * 15.0 / 100.0;
-                            penaltyMultiplier = 100.0 / 15.0 / (threshold2-threshold1);
-                            if(threshold2 == 101) penaltyMultiplier = 0;
-                            sendParamIntent(cutoff, penaltyThreshold, penaltyMultiplier);
-                        } else {
-                            Dialog d = (Dialog) dialogInterface;
-                            Toast.makeText(d.getContext(), "Invalid parameters", Toast.LENGTH_SHORT).show();
-                        }
+                    // hidden interface to set penalty parameters
+                    // use 0 <= threshold1 < threshold2 <= 101
+                    // no penalty for sound level < threshold1
+                    // double speed at sound level < threshold2
+                    int cutoffperc = Integer.parseInt(Objects.requireNonNull(m.group(1)));
+                    int threshold1 = Integer.parseInt(Objects.requireNonNull(m.group(2)));
+                    int threshold2 = Integer.parseInt(Objects.requireNonNull(m.group(3)));
+                    if((0 <= threshold1) && (threshold1 < threshold2) && (threshold2 <= 101) &&
+                       (0 <= cutoffperc) && (cutoffperc < 100)) {
+                        cutoff = cutoffperc / 100.0;
+                        penaltyThreshold = threshold1 * 15.0 / 100.0;
+                        penaltyMultiplier = 100.0 / 15.0 / (threshold2-threshold1);
+                        if(threshold2 == 101) penaltyMultiplier = 0;
+                        sendParamIntent(cutoff, penaltyThreshold, penaltyMultiplier);
                     } else {
                         Dialog d = (Dialog) dialogInterface;
-                        Toast.makeText(d.getContext(), "Invalid time", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(d.getContext(), "Invalid parameters", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Dialog d = (Dialog) dialogInterface;
+                    Toast.makeText(d.getContext(), "Invalid time", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel());
         builder.show();
     }
 

@@ -1,5 +1,6 @@
 package app.noisetimer;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,6 +9,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.IBinder;
@@ -15,7 +19,6 @@ import android.preference.PreferenceManager;
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.io.IOException;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
@@ -37,8 +40,14 @@ public class TimerService extends Service {
     private PendingIntent intentBack = null;
     private Timer tm = null;
     private LocalBroadcastManager broadcaster = null;
-    private MediaRecorder recorder = null;
+    private AudioRecord recorder = null;
     private Timer destroyTimer = null;
+    private int bufferSize = 0;
+
+    private static final int SAMPLE_RATE = 8000;
+    private static final int CHANNELS = AudioFormat.CHANNEL_IN_MONO;
+    private static final int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+    private static final int BYTES_PER_SAMPLE = 2;
 
     @Override
     public void onCreate() {
@@ -54,8 +63,11 @@ public class TimerService extends Service {
         paused = true;
         Intent intent = new Intent(getApplicationContext(), TimerService.class);
         intent.setAction(Constants.OPEN_ACTION);
-        intentBack = PendingIntent.getService(getApplicationContext(), 0,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        intentBack = PendingIntent.getService(getApplicationContext(), 0, intent, flags);
         nm = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Objects.requireNonNull(nm).createNotificationChannel(new NotificationChannel(
@@ -68,16 +80,16 @@ public class TimerService extends Service {
                     NotificationManager.IMPORTANCE_HIGH));
         }
         nbuilder = new NotificationCompat.Builder(this, Constants.CHANNEL_SERVICE);
-        recorder = new MediaRecorder();
-        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        recorder.setOutputFile("/dev/null");
-        try {
-            recorder.prepare();
-            recorder.start();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(this.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                this.stopSelf();
+                return;
+            }
         }
-        catch (IOException ignored) { }
+        bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNELS, ENCODING) / BYTES_PER_SAMPLE;
+        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                SAMPLE_RATE, CHANNELS, ENCODING, bufferSize);
+        recorder.startRecording();
         broadcaster = LocalBroadcastManager.getInstance(this);
         tm = new Timer();
         tm.schedule(new TimerTask() {
@@ -114,10 +126,13 @@ public class TimerService extends Service {
         long currentTime = System.currentTimeMillis();
         long elapsed = currentTime - lastTime;
         lastTime = currentTime;
+        soundlvl = 0;
         if(recorder != null) {
-            soundlvl = recorder.getMaxAmplitude();
-        } else {
-            soundlvl = 0;
+            short[] data = new short[bufferSize];
+            recorder.read(data, 0, bufferSize);
+            for(short d : data) {
+                if (Math.abs(d) > soundlvl) soundlvl = Math.abs(d);
+            }
         }
         calcPenalty();
         if(!paused) {
@@ -155,10 +170,7 @@ public class TimerService extends Service {
     private void sendData() {
         Intent intent = new Intent(Constants.LB_MESSAGE);
         intent.putExtra(Constants.LB_TIME, formatTime());
-        //intent.putExtra(Constants.LB_RAWTIME, remaining);
-        //intent.putExtra(Constants.LB_FULLTIME, fulltime);
         intent.putExtra(Constants.LB_LEVEL, soundlvl);
-        //intent.putExtra(Constants.LB_PENALTY, penalty);
         intent.putExtra(Constants.LB_PAUSED, paused);
         intent.putExtra(Constants.LB_CUTOFF, cutoff);
         intent.putExtra(Constants.LB_THRESHOLD, penaltyThreshold);
@@ -186,7 +198,6 @@ public class TimerService extends Service {
         }
         sendData();
         startForeground(Constants.NOTIF_SERVICE, remNotif());
-        if(recorder != null) recorder.getMaxAmplitude(); // resets maximum to zero as side effect
     }
 
     private void stopService() {

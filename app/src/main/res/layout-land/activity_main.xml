@@ -33,25 +33,25 @@
         android:orientation="vertical">
 
         <ImageButton
+            android:id="@+id/edit"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_margin="8dp"
             android:layout_weight="1"
             android:background="@drawable/button_background"
             android:contentDescription="@string/edit"
-            android:onClick="edit"
             android:padding="8dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_edit" />
 
         <ImageButton
+            android:id="@+id/increase"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_margin="8dp"
             android:layout_weight="1"
             android:background="@drawable/button_background"
             android:contentDescription="@string/incr"
-            android:onClick="increase"
             android:padding="8dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_incr" />
@@ -64,19 +64,18 @@
             android:layout_weight="1"
             android:background="@drawable/button_background"
             android:contentDescription="@string/pause"
-            android:onClick="pause"
             android:padding="8dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_play" />
 
         <ImageButton
+            android:id="@+id/reset"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_margin="8dp"
             android:layout_weight="1"
             android:background="@drawable/button_background"
             android:contentDescription="@string/reset"
-            android:onClick="reset"
             android:padding="8dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_action_reset" />
